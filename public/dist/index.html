@@ -1,0 +1,20 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8"/>
+    <title>Mediasoup 3 Simple Demo</title>
+  </head>
+
+  <body>
+    <h1>Test</h1>
+  </body>
+
+  <video id="localVideo" width="640" height="480" muted autoplay playsinline></video>
+  <div id="urlLink"></div>
+
+  <!-- Mediasoup Debugging -->
+  <script>
+    window.localStorage.setItem('debug', 'mediasoup-client:*');
+  </script>
+  <script src="main.js"></script>
+</html>

@@ -1,0 +1,20 @@
+{
+  "name": "public",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "build": "webpack --config webpack.config.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "mediasoup-client": "^3.0.0"
+  },
+  "devDependencies": {
+    "webpack": "^4.32.0",
+    "webpack-cli": "^3.3.2"
+  }
+}
