@@ -6,7 +6,6 @@ const serve = require('koa-static');
 const socket = require('./socket');
 const config = require('./config');
 
-const roomRoutes = require('./routes/room');
 const { initializeMediasoupWorkers } = require('./worker');
 
 const { certfile, keyfile, port } = config.socket;
@@ -29,7 +28,6 @@ const HTTPS_OPTIONS = Object.freeze({
 
 app.use(bodyParser());
 app.use(serve('./public/dist'));
-app.use(roomRoutes.routes());
 
 https.createServer(HTTPS_OPTIONS, app.callback()).listen(PORT, () =>
   console.log(`Listening on PORT: ${PORT}`)
