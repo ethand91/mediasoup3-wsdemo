@@ -36,7 +36,8 @@ wss.on('connection', (socket, request) => {
       console.log('request', data.request);
       await handleSocketMessage(socket, data);
     } catch (error) {
-      console.error('failed to handle message', error);
+      console.error('failed to handle message [error:%o]', error);
+      socket.send(JSON.stringify({ request: 'error', error: error.message || error })); 
     }
   });
 

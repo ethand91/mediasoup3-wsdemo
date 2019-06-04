@@ -5,9 +5,32 @@ const { getMediasoupWorker } = require('./worker');
 
 const rooms = new Map();
 
+const peerExists = (room, peerId) => room.peers.get(peerId);
+
+const getRoomById = (roomId) => {
+  const room = rooms.get(roomId);
+
+  if (!room) {
+    throw new Error(`room ${roomId} was not found in map`);
+  }
+
+  return room;
+};
+
+const getPeerById = (roomId, peerId) => {
+  const room = getRoomById(roomId);
+  const peer = room.peers.get(peerId);
+
+  if (!peer) {
+    throw new Error(`peer ${peerId} was not found in room`);
+  }
+
+  return peer;
+};
+
 const joinRoom = (room, peerId) => {
-  if (room.peers.get(peerId)) {
-    throw new Error('peer %s already exists in room %s', peerId, room.roomId);
+  if (peerExists(room, peerId)) {
+    throw new Error('peer already exists');
   }
 
   const peer = {
@@ -47,16 +70,7 @@ module.exports.createRoom = async (roomId, peerId, videoCodec = 'VP8') => {
 
 module.exports.createWebRtcTransport = async (roomId, peerId) => {
   const room = rooms.get(roomId);
-
-  if (!room) {
-    throw new Error('room %s not found', roomId);
-  }
-
-  const peer = room.peers.get(peerId);
-
-  if (!peer) {
-    throw new Error('peer %s not found in room', peerId);
-  }
+  const peer = getPeerById(roomId, peerId);
 
   const { listenIps, initialAvailableOutgoingBitrate, enableTcp, enableUdp } = config.mediasoup.webRtcTransport; 
 
@@ -75,18 +89,7 @@ module.exports.createWebRtcTransport = async (roomId, peerId) => {
 };
 
 module.exports.connectTransport = async (roomId, peerId, transportId, dtlsParameters) => {
-  const room = rooms.get(roomId);
-
-  if (!room) {
-    throw new Error(`Room with id ${roomId} does not exist`);
-  }
-
-  const peer = room.peers.get(peerId);
-
-  if (!peer) {
-    throw new Error('peer %s was not found in room', peerId);
-  }
-
+  const peer = getPeerById(roomId, peerId);
   const transport = peer.transports.get(transportId);
 
   if (!transport) {
@@ -97,18 +100,7 @@ module.exports.connectTransport = async (roomId, peerId, transportId, dtlsParame
 };
 
 module.exports.createProducer = async (roomId, peerId, transportId, kind, rtpParameters) => {
-  const room = rooms.get(roomId);
-
-  if (!room) {
-    throw new Error(`Room with id ${roomId} does not exist`);
-  }
-
-  const peer = room.peers.get(peerId);
-
-  if (!peer) {
-    throw new Error('peer %s not found in room', peerId);
-  }
-
+  const peer = getPeerById(roomId, peerId);
   const transport = peer.transports.get(transportId);
 
   if (!transport) {
@@ -137,17 +129,8 @@ module.exports.createProducer = async (roomId, peerId, transportId, kind, rtpPar
 
 module.exports.createConsumer = async (roomId, consumerPeerId, producerPeerId, transportId, producerId, rtpCapabilities) => {
   console.log('createConsumer() [roomId:%s, consumerPeerId:%s, producerPeerId:%s, transportId:%s, producerId:%s]', roomId, consumerPeerId, producerPeerId, transportId, producerId);
-  const room = rooms.get(roomId);
-
-  if (!room) {
-    throw new Error(`Room with id ${roomId} does not exist`);
-  }
-
-  const peer = room.peers.get(consumerPeerId);
-
-  if (!peer) {
-    throw new Error('peer %s was not found in room', consumerPeerId);
-  }
+  const room = getRoomById(roomId);
+  const peer = getPeerById(roomId, consumerPeerId);
 
   if (!room.mediasoupRouter.canConsume({
     producerId, rtpCapabilities

@@ -39,7 +39,6 @@ const createProducers = async () => {
   const videoTrack = stream.getVideoTracks()[0];
   const audioTrack = stream.getAudioTracks()[0];
   
-  console.log('load video');
   const localVideoNode = document.getElementById('localVideo');
   localVideoNode.srcObject = stream;
   localVideoNode.load();
@@ -54,8 +53,6 @@ const createProducers = async () => {
 };
 
 const handleSocketOpen = () => {
-  console.log('Socket opened', device);
-
   const url = new URL(window.location);
   roomId = url.searchParams.get('roomId');
   peerId = url.searchParams.get('peerId');
@@ -208,7 +205,7 @@ const handleConsumeResponse = async ({ consumerData }) => {
 
 const handleNewProducerResponse = ({ producerData }) => {
   console.log('handleNewProducerResponse() [producerData:%o]', producerData);
-  socket.send(JSON.stringify({ request: 'consume', roomId, consumerPeerId: peerId, producerPeerId: data.producerData.peerId, producerId: data.producerData.id, rtpCapabilities: device.rtpCapabilities, transportId: recvTransport.id }));
+  socket.send(JSON.stringify({ request: 'consume', roomId, consumerPeerId: peerId, producerPeerId: producerData.peerId, producerId: producerData.id, rtpCapabilities: device.rtpCapabilities, transportId: recvTransport.id }));
 };
 
 const handlePeerClosedResponse = ({ id }) => {
@@ -248,7 +245,7 @@ const handleSocketMessage = async (message) => {
         handleConsumeResponse(data);
         break;
       case 'new-producer':
-        handleNewProducerRequest(data);
+        handleNewProducerResponse(data);
         break;
       case 'peer-closed':
         handlePeerClosedResponse(data);
