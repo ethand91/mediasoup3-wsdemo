@@ -1,13 +1,21 @@
 {
   "name": "server",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "author": "Ethan",
+  "description": "Simple mediasoupv3 server/client",
+  "main": "src/server.js",
   "scripts": {
+    "start": "node src/server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "mediasoup",
+    "mediasoup3",
+    "webrtc"
+  ],
+  "engines": {
+    "node": ">=10.0.0"
+  },
   "license": "ISC",
   "devDependencies": {
     "jest": "^24.8.0"
@@ -18,7 +26,7 @@
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
     "koa-static": "^5.0.0",
-    "mediasoup": "^3.0.4",
+    "mediasoup": "^3.0.11",
     "ws": "^7.0.0"
   }
 }
