@@ -7,14 +7,19 @@
     "build": "webpack --config webpack.config.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "mediasoup",
+    "mediasoupv3",
+    "mediasoup-client",
+    "webrtc"
+  ],
+  "author": "Ethan",
   "license": "ISC",
   "dependencies": {
-    "mediasoup-client": "^3.0.0"
+    "mediasoup-client": "^3.0.7"
   },
   "devDependencies": {
-    "webpack": "^4.32.0",
+    "webpack": "^4.32.2",
     "webpack-cli": "^3.3.2"
   }
 }
