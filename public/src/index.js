@@ -11,21 +11,22 @@ let remotePeers = [];
 let sendTransport, recvTransport;
 let roomId, peerId;
 let produce, consume;
-const remoteMediaStream = new MediaStream();
+const remoteMediaStreamMap = new Map();
 
 console.log('running mediasoup client version %s', version);
 
 const createTransport = () => {
   console.log('createTransport()');
+
   if (produce) {
-    console.log('creating send transport');
-    socket.send(JSON.stringify({ request: 'create-transport', roomId, peerId, type: 'send' }));
+    console.log('createTransport() creating send transport');
+    socket.send(JSON.stringify({ request: 'create-transport', roomId, peerId, type: 'send' })); 
   } else {
     document.getElementById('localVideo').remove();
   }
 
   if (consume) {
-    console.log('creating recv transport');
+    console.log('createTransport() creating recv transport');
     socket.send(JSON.stringify({ request: 'create-transport', roomId, peerId, type: 'recv' }));
   }
 };
@@ -170,6 +171,15 @@ const handleCreateTransportResponse = async ({ transportData, type }) => {
 const handleConsumeResponse = async ({ consumerData }) => {
   console.log('handleConsumeResponse() [consumerData:%o]', consumerData);
   const { consumerId, kind, producerId, rtpParameters } = consumerData;
+  
+  let remoteMediaStream = remoteMediaStreamMap.get(consumerData.peerId);
+
+  if (!remoteMediaStream) {
+    console.log('add new remote peer media stream to map [peerId:%s]', consumerData.peerId);
+    remoteMediaStream = new MediaStream();
+    remoteMediaStreamMap.set(consumerData.peerId, remoteMediaStream);
+  }
+
   if (kind === 'video') {
     const videoConsumer = await recvTransport.consume({
       id: consumerId,
@@ -189,18 +199,24 @@ const handleConsumeResponse = async ({ consumerData }) => {
   const remoteVideoNode = document.getElementById(`remoteVideo-${consumerData.peerId}`);
 
   if (remoteVideoNode) {
+    remoteVideoNode.muted = true;
     remoteVideoNode.srcObject = remoteMediaStream;
     remoteVideoNode.load();
+    await remoteVideoNode.play();
     return;
   }
 
   const videoNode = document.createElement('video');
   videoNode.id = `remoteVideo-${consumerData.peerId}`;
+  videoNode.muted = true;
+  videoNode.onclick = () => videoNode.muted = false;
   videoNode.autoplay = true;
   videoNode.playsinline = true;
   videoNode.srcObject = remoteMediaStream;
   document.body.appendChild(videoNode);
+
   videoNode.load();
+  await videoNode.play();
 };
 
 const handleNewProducerResponse = ({ producerData }) => {
@@ -213,6 +229,10 @@ const handlePeerClosedResponse = ({ id }) => {
   if (peerVideo) {
     console.warn('remove video');
     peerVideo.remove();
+    if (remoteMediaStreamMap.has(id)) {
+      console.log('removing peers remote media stream from the map [peerId%s]', id);
+      remoteMediaStreamMap.delete(id);
+    }
   }
 };
 
@@ -249,6 +269,10 @@ const handleSocketMessage = async (message) => {
         break;
       case 'peer-closed':
         handlePeerClosedResponse(data);
+        break;
+      case 'error':
+        console.error('received server error [error:%o]', data.error);
+        alert(data.error);
         break;
       default: console.log('Unknown message', data);
     }

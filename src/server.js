@@ -10,7 +10,7 @@ const { initializeMediasoupWorkers } = require('./worker');
 
 const { certfile, keyfile, port } = config.socket;
 const app = new Koa();
-const PORT = process.env.PORT || 3000;
+const REST_PORT = process.env.REST_PORT || 3000;
 
 const HTTPS_OPTIONS = Object.freeze({
   cert: fs.readFileSync(certfile),
@@ -29,8 +29,8 @@ const HTTPS_OPTIONS = Object.freeze({
 app.use(bodyParser());
 app.use(serve('./public/dist'));
 
-https.createServer(HTTPS_OPTIONS, app.callback()).listen(PORT, () =>
-  console.log(`Listening on PORT: ${PORT}`)
+https.createServer(HTTPS_OPTIONS, app.callback()).listen(REST_PORT, () =>
+  console.log(`REST Listening on PORT: ${REST_PORT}`)
 );
 
 socket.listen(port, () =>
