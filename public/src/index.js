@@ -59,7 +59,7 @@ const handleSocketOpen = () => {
   peerId = url.searchParams.get('peerId');
   produce = url.searchParams.get('produce');
   consume = url.searchParams.get('consume');
-  const videoCodec = url.searchParams.get('videoCodec') || 'vp8';
+  const videoCodec = url.searchParams.get('videoCodec') || undefined;
 
   if (!roomId || !peerId) {
     return alert('invalid url');
@@ -221,6 +221,9 @@ const handleConsumeResponse = async ({ consumerData }) => {
 
 const handleNewProducerResponse = ({ producerData }) => {
   console.log('handleNewProducerResponse() [producerData:%o]', producerData);
+  if (!consume) {
+    return console.log('consume is false so dont consume');
+  }
   socket.send(JSON.stringify({ request: 'consume', roomId, consumerPeerId: peerId, producerPeerId: producerData.peerId, producerId: producerData.id, rtpCapabilities: device.rtpCapabilities, transportId: recvTransport.id }));
 };
 
