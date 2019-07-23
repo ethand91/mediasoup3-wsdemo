@@ -85,7 +85,6 @@ module.exports = {
         { ip: process.env.LISTEN_IP || getLocalIp(), announcedIp: null },
       ],
       maxIncomingBitrate: 1500000,
-      initialAvailableOutgoingBitrate: 100000,
       enableTcp: false,
       enableUdp: true
     }

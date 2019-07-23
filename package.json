@@ -26,7 +26,7 @@
     "koa-bodyparser": "^4.2.1",
     "koa-router": "^7.4.0",
     "koa-static": "^5.0.0",
-    "mediasoup": "^3.1.0",
-    "ws": "^7.0.0"
+    "mediasoup": "^3.2.4",
+    "ws": "^7.1.1"
   }
 }

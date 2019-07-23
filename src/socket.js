@@ -23,13 +23,13 @@ const HTTPS_OPTIONS = Object.freeze({
 const httpsServer = https.createServer(HTTPS_OPTIONS);
 const wss = new WebSocket.Server({ server: httpsServer });
 
-const heartbeat = socket => socket.isAlive = true; 
+const heartbeat = socket => socket.isAlive = true;
 
 wss.on('connection', (socket, request) => {
   console.log('new socket request [ip:%s]', request.headers['x-forwarded-for'] || request.headers.origin);
 
   socket.isAlive = true;
-  
+
   socket.on('message', async (message) => {
     try {
       const data = JSON.parse(message);
@@ -37,7 +37,7 @@ wss.on('connection', (socket, request) => {
       await handleSocketMessage(socket, data);
     } catch (error) {
       console.error('failed to handle message [error:%o]', error);
-      socket.send(JSON.stringify({ request: 'error', error: error.message || error })); 
+      socket.send(JSON.stringify({ request: 'error', error: error.message || error }));
     }
   });
 
@@ -45,7 +45,7 @@ wss.on('connection', (socket, request) => {
     console.log('socket closed [roomId:%s', socket.roomId);
     if (socket.roomId) {
       try {
-        broadcastRoom(socket, { request: 'peer-closed', id: socket.peerId }); 
+        broadcastRoom(socket, { request: 'peer-closed', id: socket.peerId });
         checkStatus(socket.roomId, socket.peerId);
       } catch (error) {
         console.error('failed to handle check status request [error:%o]', error);

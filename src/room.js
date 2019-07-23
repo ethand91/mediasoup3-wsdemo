@@ -1,7 +1,7 @@
 const AwaitQueue = require('awaitqueue');
 
 const config = require('./config');
-const { getMediasoupWorker } = require('./worker'); 
+const { getMediasoupWorker } = require('./worker');
 
 const rooms = new Map();
 
@@ -56,7 +56,7 @@ module.exports.createRoom = async (roomId, peerId, videoCodec = 'VP8') => {
     .filter((codec => codec.kind === 'audio' || codec.mimeType.toLowerCase() === `video/${videoCodec.toLowerCase()}`));
 
   const mediasoupRouter = await mediasoupWorker.createRouter({ mediaCodecs });
-  
+
   const room = {
     roomId,
     mediasoupRouter,
@@ -72,7 +72,7 @@ module.exports.createWebRtcTransport = async (roomId, peerId) => {
   const room = rooms.get(roomId);
   const peer = getPeerById(roomId, peerId);
 
-  const { listenIps, initialAvailableOutgoingBitrate, enableTcp, enableUdp } = config.mediasoup.webRtcTransport; 
+  const { listenIps, initialAvailableOutgoingBitrate, enableTcp, enableUdp } = config.mediasoup.webRtcTransport;
 
   const transport = await room.mediasoupRouter.createWebRtcTransport({
     listenIps, enableUdp, enableTcp, initialAvailableOutgoingBitrate
@@ -106,7 +106,7 @@ module.exports.createProducer = async (roomId, peerId, transportId, kind, rtpPar
   if (!transport) {
     throw new Error(`transport with id ${transportId} does not exist`);
   }
- 
+
   const producer = await transport.produce({ kind, rtpParameters });
 
   producer.on('score', (score) => {
@@ -143,7 +143,7 @@ module.exports.createConsumer = async (roomId, consumerPeerId, producerPeerId, t
   if (!transport) {
     throw new Error(`transport with id ${transportId} does not exist`);
   }
- 
+
   let consumer;
 
   try {
@@ -158,7 +158,7 @@ module.exports.createConsumer = async (roomId, consumerPeerId, producerPeerId, t
 
   consumer.once('transportclose', () => {
     console.log('[consumer:%s] transportclose', consumer.id);
-    room.consumers.delete(consumer.id); 
+    room.consumers.delete(consumer.id);
   });
 
   consumer.on('producerclose', () => {

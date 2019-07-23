@@ -1,7 +1,8 @@
-const { version, Device } = require('mediasoup-client');
+const mediasoup = require('mediasoup-client');
+console.log('mediasoup', mediasoup);
 
 const socket = new WebSocket(`wss://${window.location.hostname}:3001`);
-const device = new Device();
+const device = new mediasoup.Device();
 const VIDEO_CONSTRAINTS = Object.freeze({
   width: { ideal: 640 }, height: { ideal: 480 }
 });
@@ -13,14 +14,14 @@ let roomId, peerId;
 let produce, consume;
 const remoteMediaStreamMap = new Map();
 
-console.log('running mediasoup client version %s', version);
+console.log('running mediasoup client version %s', mediasoup.version);
 
 const createTransport = () => {
   console.log('createTransport()');
 
   if (produce) {
     console.log('createTransport() creating send transport');
-    socket.send(JSON.stringify({ request: 'create-transport', roomId, peerId, type: 'send' })); 
+    socket.send(JSON.stringify({ request: 'create-transport', roomId, peerId, type: 'send' }));
   } else {
     document.getElementById('localVideo').remove();
   }
@@ -39,16 +40,17 @@ const createProducers = async () => {
 
   const videoTrack = stream.getVideoTracks()[0];
   const audioTrack = stream.getAudioTracks()[0];
-  
+
   const localVideoNode = document.getElementById('localVideo');
   localVideoNode.srcObject = stream;
   localVideoNode.load();
+  await localVideoNode.play();
 
-  if (canProduceVideo) {
+  if (canProduceVideo && videoTrack) {
     const videoProducer = await sendTransport.produce({ track: videoTrack });
   }
 
-  if (canProduceAudio) {
+  if (canProduceAudio && audioTrack) {
     const audioProducer = await sendTransport.produce({ track: audioTrack });
   }
 };
@@ -65,13 +67,11 @@ const handleSocketOpen = () => {
     return alert('invalid url');
   }
 
-  console.warn(produce);
   consume = (consume && consume == 1) ? true : false;
   produce = (produce && produce == 1) ? true : false;
-  
-  console.warn(produce);
+
   if (!produce && !consume) {
-    return alert('procuce and consume are both false');
+    return alert('produce and consume are both false');
   }
 
   console.log('starting media session [roomId:%s, peerId:%s, produce: %s, consume:%s]', roomId, peerId, produce, consume);
@@ -98,6 +98,7 @@ const handleTransportProduce = async ({ kind, rtpParameters }, callback, errback
       const dataJson = JSON.parse(message.data);
 
       if (dataJson.request === 'produce') {
+        console.warn('produce');
         callback({ id: dataJson.producerData.id });
       }
     } catch (error) {
@@ -129,7 +130,7 @@ const createRecvTransport = async (transportData) => {
   for (const peer of remotePeers) {
     if (peer.producers.length > 0) {
       for (const producer of peer.producers) {
-        console.log('consumner producer:%o', producer);
+        console.log('consumer producer:%o', producer);
         socket.send(JSON.stringify({ request: 'consume', roomId, consumerPeerId: peerId, producerPeerId: peer.id, producerId: producer[0], rtpCapabilities: device.rtpCapabilities, transportId: recvTransport.id }));
       }
     }
@@ -146,13 +147,12 @@ const handleCreateTransportResponse = async ({ transportData, type }) => {
 
   transport.on('connect', async ({ dtlsParameters }, callback, errback) => {
     console.log('Transport::connect [direction:%s]', transport.direction);
-    
-    const handleTransportConnectResponse = async (message) => {
+
+    const handleTransportConnectResponse = message => {
       try {
         const dataJson = JSON.parse(message.data);
 
         if (dataJson.request === 'connect-transport') {
-          console.log('connect', dataJson);
           callback();
         }
       } catch (error) {
@@ -171,7 +171,7 @@ const handleCreateTransportResponse = async ({ transportData, type }) => {
 const handleConsumeResponse = async ({ consumerData }) => {
   console.log('handleConsumeResponse() [consumerData:%o]', consumerData);
   const { consumerId, kind, producerId, rtpParameters } = consumerData;
-  
+
   let remoteMediaStream = remoteMediaStreamMap.get(consumerData.peerId);
 
   if (!remoteMediaStream) {
@@ -180,22 +180,27 @@ const handleConsumeResponse = async ({ consumerData }) => {
     remoteMediaStreamMap.set(consumerData.peerId, remoteMediaStream);
   }
 
-  if (kind === 'video') {
-    const videoConsumer = await recvTransport.consume({
-      id: consumerId,
-      kind, producerId, rtpParameters
-    });
+  try {
+    if (kind === 'video') {
+      const videoConsumer = await recvTransport.consume({
+        id: consumerId,
+        kind, producerId, rtpParameters
+      });
 
-    remoteMediaStream.addTrack(videoConsumer.track);
-  } else {
-    const audioConsumer = await recvTransport.consume({
-      id: consumerId,
-      kind, producerId, rtpParameters
-    });
+      remoteMediaStream.addTrack(videoConsumer.track);
+    } else {
+      const audioConsumer = await recvTransport.consume({
+        id: consumerId,
+        kind, producerId, rtpParameters
+      });
 
-    remoteMediaStream.addTrack(audioConsumer.track);
+      remoteMediaStream.addTrack(audioConsumer.track);
+    }
+  } catch(error) {
+    console.error('failed to consume [kind:%s, error:%o]', kind, error);
+    throw error;
   }
- 
+
   const remoteVideoNode = document.getElementById(`remoteVideo-${consumerData.peerId}`);
 
   if (remoteVideoNode) {
@@ -230,7 +235,6 @@ const handleNewProducerResponse = ({ producerData }) => {
 const handlePeerClosedResponse = ({ id }) => {
   const peerVideo = document.getElementById(`remoteVideo-${id}`);
   if (peerVideo) {
-    console.warn('remove video');
     peerVideo.remove();
     if (remoteMediaStreamMap.has(id)) {
       console.log('removing peers remote media stream from the map [peerId%s]', id);
@@ -243,7 +247,7 @@ const destroySession = () => {
   if (sendTransport) {
     sendTransport.close();
   }
-  
+
   if (recvTransport) {
     recvTransport.close();
   }
@@ -294,7 +298,7 @@ const handleSocketClose = () => {
   destroySession();
 };
 
-socket.addEventListener('open', handleSocketOpen); 
+socket.addEventListener('open', handleSocketOpen);
 socket.addEventListener('message', handleSocketMessage);
 socket.addEventListener('error', handleSocketError);
 socket.addEventListener('close', handleSocketClose);
