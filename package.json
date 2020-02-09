@@ -18,15 +18,14 @@
   },
   "license": "ISC",
   "devDependencies": {
-    "jest": "^24.8.0"
+    "jest": "^25.1.0"
   },
   "dependencies": {
-    "awaitqueue": "^1.0.0",
-    "koa": "^2.7.0",
+    "koa": "^2.11.0",
     "koa-bodyparser": "^4.2.1",
-    "koa-router": "^7.4.0",
+    "koa-router": "^8.0.7",
     "koa-static": "^5.0.0",
-    "mediasoup": "^3.2.4",
-    "ws": "^7.1.1"
+    "mediasoup": "^3.4.8",
+    "ws": "^7.2.1"
   }
 }

@@ -1,5 +1,3 @@
-const AwaitQueue = require('awaitqueue');
-
 const config = require('./config');
 const { getMediasoupWorker } = require('./worker');
 
