@@ -16,10 +16,10 @@
   "author": "Ethan",
   "license": "ISC",
   "dependencies": {
-    "mediasoup-client": "^3.2.0"
+    "mediasoup-client": "./../../mediasoup-client"
   },
   "devDependencies": {
-    "webpack": "^4.36.1",
-    "webpack-cli": "^3.3.6"
+    "webpack": "^4.42.0",
+    "webpack-cli": "^3.3.11"
   }
 }
