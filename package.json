@@ -21,11 +21,11 @@
     "jest": "^25.1.0"
   },
   "dependencies": {
-    "koa": "^2.11.0",
-    "koa-bodyparser": "^4.2.1",
-    "koa-router": "^8.0.8",
+    "koa": "^2.13.0",
+    "koa-bodyparser": "^4.3.0",
+    "koa-router": "^9.1.0",
     "koa-static": "^5.0.0",
-    "mediasoup": "^3.5.5",
-    "ws": "^7.2.3"
+    "mediasoup": "^3.6.12",
+    "ws": "^7.3.1"
   }
 }
